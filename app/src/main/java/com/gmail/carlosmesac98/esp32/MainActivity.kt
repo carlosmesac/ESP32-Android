@@ -11,17 +11,17 @@ import com.gmail.carlosmesac98.esp32.services.BaseDataCollectorService
 import com.stevenmhernandez.esp32csiserial.CSIDataInterface
 import com.stevenmhernandez.esp32csiserial.ESP32CSISerial
 import com.stevenmhernandez.esp32csiserial.UsbService.TAG
-import kotlin.math.log
 
 class MainActivity : AppCompatActivity(), CSIDataInterface {
 
     private lateinit var tvCSICounter: TextView
-    private lateinit var tvCSIString: TextView
     private lateinit var etPosition: EditText
-    private lateinit var btChangePositon: Button
+    private lateinit var btChangePosition: Button
+    private lateinit var btClearPosition: Button
+
     private lateinit var tvCurrentPosition: TextView
     private var position = "Undefined"
-    val dataCollectorService: BaseDataCollectorService = FileDataCollectorService()
+    private val dataCollectorService: BaseDataCollectorService = FileDataCollectorService()
 
     private val csiSerial: ESP32CSISerial = ESP32CSISerial()
     private var csiCounter = 0
@@ -36,20 +36,26 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         csiSerial.setup(this, "test")
         csiSerial.onCreate(this)
 
-        btChangePositon.setOnClickListener {
+        btChangePosition.setOnClickListener {
             position = etPosition.text.toString()
             tvCurrentPosition.text = "La posicion actual es $position"
         }
 
 
+        btClearPosition.setOnClickListener {
+            position = "Undefined"
+            tvCurrentPosition.text = "La posicion actual es $position"
+            etPosition.setText("")
+        }
     }
 
     private fun initLayout() {
         tvCSICounter = findViewById(R.id.tv_csiCounter)
-        tvCSIString = findViewById(R.id.tv_csiString)
         etPosition = findViewById(R.id.et_position)
-        btChangePositon = findViewById(R.id.bt_changePosition)
+        btChangePosition = findViewById(R.id.bt_changePosition)
+        btClearPosition = findViewById(R.id.bt_clearPosition)
         tvCurrentPosition = findViewById(R.id.tv_currentPosition)
+
 
     }
 
