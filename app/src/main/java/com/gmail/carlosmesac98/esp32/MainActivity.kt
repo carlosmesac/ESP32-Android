@@ -11,6 +11,9 @@ import com.gmail.carlosmesac98.esp32.services.BaseDataCollectorService
 import com.stevenmhernandez.esp32csiserial.CSIDataInterface
 import com.stevenmhernandez.esp32csiserial.ESP32CSISerial
 import com.stevenmhernandez.esp32csiserial.UsbService.TAG
+import kotlin.math.atan2
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class MainActivity : AppCompatActivity(), CSIDataInterface {
 
@@ -31,7 +34,7 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         initLayout()
 
         dataCollectorService.setup(this)
-        dataCollectorService.handle("type,Mac,RSSI,CSI,Position\n")
+        dataCollectorService.handle("type,Mac,RSSI,CSI_Amplitude,CSI_Phase,Position\n")
 
         csiSerial.setup(this, "test")
         csiSerial.onCreate(this)
@@ -51,10 +54,12 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
 
     private fun initLayout() {
         tvCSICounter = findViewById(R.id.tv_csiCounter)
+        tvCSICounter.text = csiCounter.toString()
+        tvCurrentPosition = findViewById(R.id.tv_currentPosition)
+        tvCurrentPosition.text = "La posicion actual es $position"
         etPosition = findViewById(R.id.et_position)
         btChangePosition = findViewById(R.id.bt_changePosition)
         btClearPosition = findViewById(R.id.bt_clearPosition)
-        tvCurrentPosition = findViewById(R.id.tv_currentPosition)
 
 
     }
@@ -72,8 +77,11 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
     override fun addCsi(csi_string: String?) {
         csiCounter++
         tvCSICounter.text = csiCounter.toString()
+
         val arr = csi_string?.split(",")
         if (arr != null) {
+
+
             dataCollectorService.handle(
                 updateCsiString(
                     arr[0],
@@ -85,6 +93,7 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
             )
         }
 
+
     }
 
     private fun updateCsiString(
@@ -95,10 +104,41 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         position: String
 
     ): String {
+        val (amplitudes, phases) = parseCSI(CSI)
         Log.d(
             TAG,
-            "updateCsiString: type: $type MAC: $MAC RSSI: $RSSI CSI: $CSI Position: $position"
+            "$type,$MAC,$RSSI,$amplitudes,$phases,$position\n"
         )
-        return "$type,$MAC,$RSSI,$CSI,$position\n"
+        return "$type,$MAC,$RSSI,$amplitudes,$phases,$position\n"
+    }
+
+    private fun parseCSI(CSI: String): Pair<ArrayList<Float>, ArrayList<Float>> {
+        val csiInt = arrayListOf<Int>()
+        val imaginary = arrayListOf<Float>()
+        val real = arrayListOf<Float>()
+        val amplitudes = arrayListOf<Float>()
+        val phases = arrayListOf<Float>()
+
+        val csiRaw =
+            CSI.slice(1 until CSI.length - 2).split(" ")
+        for (i in csiRaw) {
+            csiInt.add(Integer.parseInt(i))
+        }
+
+        for (i in csiInt.indices) {
+            if (i % 2 == 0) {
+                imaginary.add(csiInt[i].toFloat())
+            } else {
+                real.add(csiInt[i].toFloat())
+            }
+        }
+
+        for (i in 0 until csiInt.size / 2) {
+            val amp = imaginary[i].pow(2) + real[i].pow(2)
+            amplitudes.add(sqrt(amp))
+            phases.add(atan2(imaginary[i], real[i]))
+        }
+
+        return amplitudes to phases
     }
 }
