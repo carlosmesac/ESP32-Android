@@ -2,6 +2,7 @@ package com.gmail.carlosmesac98.esp32.services
 
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import android.util.Log
 import java.io.File
 import java.io.FileNotFoundException
@@ -20,7 +21,7 @@ class FileDataCollectorService(private val fileName: String, private val extensi
         // (or at least just in case the data never actually gets sent)
         try {
             outputFile = File(
-                context!!.getExternalFilesDir(null),
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
                 fileName + System.currentTimeMillis() + extension
             )
             localBackup = FileOutputStream(outputFile, true)

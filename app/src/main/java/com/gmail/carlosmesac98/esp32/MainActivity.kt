@@ -1,20 +1,30 @@
 package com.gmail.carlosmesac98.esp32
 
+import android.app.DownloadManager
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.gmail.carlosmesac98.esp32.services.BaseDataCollectorService
 import com.gmail.carlosmesac98.esp32.services.FileDataCollectorService
 import com.stevenmhernandez.esp32csiserial.CSIDataInterface
 import com.stevenmhernandez.esp32csiserial.ESP32CSISerial
 import com.stevenmhernandez.esp32csiserial.UsbService.TAG
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
 import kotlin.math.atan2
-import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.math.sqrt
+
 
 class MainActivity : AppCompatActivity(), CSIDataInterface {
 
@@ -22,6 +32,7 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
     private lateinit var etPosition: EditText
     private lateinit var btChangePosition: Button
     private lateinit var btClearPosition: Button
+    private lateinit var btOpenFolder: Button
 
     private lateinit var tvCurrentPosition: TextView
     private var position = "Undefined"
@@ -52,6 +63,11 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
             tvCurrentPosition.text = "La posicion actual es $position"
             etPosition.setText("")
         }
+
+        btOpenFolder.setOnClickListener {
+            startActivity(Intent(DownloadManager.ACTION_VIEW_DOWNLOADS));
+
+        }
     }
 
     private fun initLayout() {
@@ -62,7 +78,7 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         etPosition = findViewById(R.id.et_position)
         btChangePosition = findViewById(R.id.bt_changePosition)
         btClearPosition = findViewById(R.id.bt_clearPosition)
-
+        btOpenFolder = findViewById(R.id.bt_openFolder)
 
     }
 
