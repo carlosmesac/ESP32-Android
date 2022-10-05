@@ -1,17 +1,18 @@
 package com.gmail.carlosmesac98.esp32
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import com.gmail.carlosmesac98.esp32.services.FileDataCollectorService
+import androidx.appcompat.app.AppCompatActivity
 import com.gmail.carlosmesac98.esp32.services.BaseDataCollectorService
+import com.gmail.carlosmesac98.esp32.services.FileDataCollectorService
 import com.stevenmhernandez.esp32csiserial.CSIDataInterface
 import com.stevenmhernandez.esp32csiserial.ESP32CSISerial
 import com.stevenmhernandez.esp32csiserial.UsbService.TAG
 import kotlin.math.atan2
+import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -24,7 +25,7 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
 
     private lateinit var tvCurrentPosition: TextView
     private var position = "Undefined"
-    private val dataCollectorService: BaseDataCollectorService = FileDataCollectorService()
+    private lateinit var dataCollectorService: BaseDataCollectorService
 
     private val csiSerial: ESP32CSISerial = ESP32CSISerial()
     private var csiCounter = 0
@@ -33,6 +34,7 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         setContentView(R.layout.activity_main)
         initLayout()
 
+        dataCollectorService = FileDataCollectorService("ESP32_casa", ".csv")
         dataCollectorService.setup(this)
         dataCollectorService.handle("type,Mac,RSSI,CSI_Amplitude,CSI_Phase,Position\n")
 
@@ -77,7 +79,6 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
     override fun addCsi(csi_string: String?) {
         csiCounter++
         tvCSICounter.text = csiCounter.toString()
-
         val arr = csi_string?.split(",")
         if (arr != null) {
 
@@ -104,7 +105,9 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         position: String
 
     ): String {
-        val (amplitudes, phases) = parseCSI(CSI)
+        val amplitudes = parseCSI(CSI, false)
+        val phases = parseCSI(CSI, true)
+
         Log.d(
             TAG,
             "$type,$MAC,$RSSI,$amplitudes,$phases,$position\n"
@@ -112,7 +115,7 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         return "$type,$MAC,$RSSI,$amplitudes,$phases,$position\n"
     }
 
-    private fun parseCSI(CSI: String): Pair<ArrayList<Float>, ArrayList<Float>> {
+    private fun parseCSI(CSI: String, returnPhases: Boolean): ArrayList<Float> {
         val csiInt = arrayListOf<Int>()
         val imaginary = arrayListOf<Float>()
         val real = arrayListOf<Float>()
@@ -139,6 +142,12 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
             phases.add(atan2(imaginary[i], real[i]))
         }
 
-        return amplitudes to phases
+        return if (returnPhases) {
+            phases
+        } else {
+            amplitudes
+        }
     }
+
+
 }

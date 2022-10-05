@@ -9,7 +9,9 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 
-class FileDataCollectorService : BaseDataCollectorService() {
+class FileDataCollectorService(private val fileName: String, private val extension: String) :
+    BaseDataCollectorService() {
+
     private val LOG_TAG = "FileDataCollectorService"
     private var outputFile: File? = null
     private var localBackup: FileOutputStream? = null
@@ -19,7 +21,7 @@ class FileDataCollectorService : BaseDataCollectorService() {
         try {
             outputFile = File(
                 context!!.getExternalFilesDir(null),
-                "ourCSV" + System.currentTimeMillis() + ".csv"
+                fileName + System.currentTimeMillis() + extension
             )
             localBackup = FileOutputStream(outputFile, true)
         } catch (e: FileNotFoundException) {
