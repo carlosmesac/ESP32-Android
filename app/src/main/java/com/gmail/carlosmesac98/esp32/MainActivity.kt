@@ -174,20 +174,23 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         tvCSICounter.text = csiCounter.toString()
         val arr = csi_string?.split(",")
         if (arr != null) {
-
+            if (position!="Undefined") {
                 csiCounter++
-
-                tvMAC.text = arr[2]
+                val mac = arr[2]
+                tvMAC.text = mac
+                val type = arr[0]
+                val rssi = arr[3]
+                val csi = arr.last()
                 dataCollectorService.handle(
                     updateCsiString(
-                        arr[0],
-                        arr[2],
-                        arr[3],
-                        arr.last(),
+                        type,
+                        mac,
+                        rssi,
+                        csi,
                         position
                     )
                 )
-
+            }
         }
     }
 
