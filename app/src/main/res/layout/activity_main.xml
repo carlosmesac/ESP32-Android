@@ -20,37 +20,102 @@
         android:layout_height="wrap_content"
         android:text="TextView" />
 
-    <EditText
-        android:id="@+id/et_position"
+    <TextView
+        android:id="@+id/tv_MAC"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="position"
-        android:minHeight="48dp" />
+        android:text="MAC" />
+
+    <EditText
+            android:id="@+id/et_position"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="position"
+            android:minHeight="48dp" />
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggleButton"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:selectionRequired="true"
+        app:singleSelection="true">
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/bt_north"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="North"
+            />
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/bt_east"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="East"
+            />
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/bt_south"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="South"
+            />
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/bt_west"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="West"
+            />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.MaterialComponents.Button"
+
             android:id="@+id/bt_changePosition"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="5dp"
             android:text="Change position" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.MaterialComponents.Button"
+
             android:id="@+id/bt_clearPosition"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Clear Position" />
 
     </LinearLayout>
-    <Button
+
+    <TextView
+        android:id="@+id/tv_pingReach"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ping" />
+    <TextView
+        android:id="@+id/tv_beaconCounter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+    <ListView
+        android:id="@+id/beacon_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <com.google.android.material.button.MaterialButton
+        style="@style/Widget.MaterialComponents.Button"
+
         android:id="@+id/bt_openFolder"
-        android:layout_gravity="center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:text="Open Folder" />
 
 </LinearLayout>
