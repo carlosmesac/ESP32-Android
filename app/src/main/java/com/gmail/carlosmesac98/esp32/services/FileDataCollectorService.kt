@@ -38,7 +38,7 @@ class FileDataCollectorService(private val fileName: String, private val extensi
                 localBackup!!.flush()
             }
         } catch (e: IOException) {
-            e.printStackTrace()
+            //e.printStackTrace()
         }
     }
 

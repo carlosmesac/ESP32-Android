@@ -23,12 +23,10 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 import com.stevenmhernandez.esp32csiserial.CSIDataInterface
 import com.stevenmhernandez.esp32csiserial.ESP32CSISerial
 import com.stevenmhernandez.esp32csiserial.UsbService.TAG
-import org.altbeacon.beacon.Beacon
-import org.altbeacon.beacon.BeaconManager
-import org.altbeacon.beacon.BeaconParser
-import org.altbeacon.beacon.Region
+import org.altbeacon.beacon.*
 import java.net.InetAddress
 import kotlin.math.atan2
+import kotlin.math.log
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -53,10 +51,12 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
     private lateinit var tvPing: TextView
 
     private var position = "Undefined"
+    private var orientation = "North"
     private lateinit var dataCollectorService: BaseDataCollectorService
 
     private val csiSerial: ESP32CSISerial = ESP32CSISerial()
     private var csiCounter = 0
+    private var first = true
     lateinit var beaconList: ListView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,9 +73,8 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         beaconManager.beaconParsers.add(
             BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24")
         )
-        beaconManager.setEnableScheduledScanJobs(false)
         beaconManager.backgroundScanPeriod = 5000
-        beaconManager.foregroundScanPeriod = 3000
+        beaconManager.foregroundScanPeriod = 2000
 
         val region = Region("all-beacons-region", null, null, null)
 
@@ -85,33 +84,55 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         // observer will be called each time a new list of beacons is ranged (typically ~1 second in the foreground)
         beaconManager.startRangingBeacons(region)
 
+
+
         dataCollectorService = FileDataCollectorService("ESP32_casa", ".csv")
         dataCollectorService.setup(this)
-        dataCollectorService.handle("type,Mac,RSSI,CSI_Amplitude,CSI_Phase,Position\n")
+        dataCollectorService.handle("type,Mac,RSSI,TimeStamp,CSI_Amplitude,CSI_Phase,Position,Orientation\n")
 
         csiSerial.setup(this, "test")
         csiSerial.onCreate(this)
 
 
         btChangePosition.setOnClickListener {
-            position = etPosition.text.toString()
-            tvCurrentPosition.text = "La posicion actual es $position"
-        }
+            if (etPosition.text.isNotEmpty()) {
+                position = etPosition.text.toString()
+                tvCurrentPosition.text = "La posicion actual es $position"
+            }
+            }
 
 
         btClearPosition.setOnClickListener {
             position = "Undefined"
             tvCurrentPosition.text = "La posicion actual es $position"
             etPosition.setText("")
+            toggleButton.check(R.id.bt_north)
+
         }
 
         btOpenFolder.setOnClickListener {
             startActivity(Intent(DownloadManager.ACTION_VIEW_DOWNLOADS));
 
         }
-        toggleButton.addOnButtonCheckedListener { toggleButton, checkedId, isChecked ->
-            Log.d(TAG, "onCreate: ${toggleButton.checkedButtonIds}")
+        toggleButton.check(R.id.bt_north)
+        toggleButton.addOnButtonCheckedListener { toggleButton, checkedId, _ ->
+            orientation = when (checkedId) {
+                R.id.bt_north -> "North"
+                R.id.bt_east -> "East"
+                R.id.bt_west -> "West"
+                R.id.bt_south -> "South"
+
+                else -> { // Note the block
+                    toggleButton.check(R.id.bt_north)
+                    "North"
+                }
+            }
+
+
+
         }
+
+
     }
 
 
@@ -145,6 +166,10 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         csiSerial.onPause(this)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
 
     private val rangingObserver = Observer<Collection<Beacon>> { beacons ->
         if (BeaconManager.getInstanceForApplication(this).rangedRegions.isNotEmpty()) {
@@ -156,8 +181,21 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         }
 
         beaconList.adapter = BeaconListAdapter(this, beacons.toTypedArray())
+        for(beacon in beacons){
+            if(position!="Undefined")
+            dataCollectorService.handle(updateCsiString(
+                "beacon",
+                beacon.bluetoothAddress,
+                beacon.rssi.toString(),
+                "",
+                position,
+                orientation
+            ))
+        }
+
         sendPingRequest()
     }
+
 
     private fun sendPingRequest() {
         val inet = InetAddress.getByName("192.168.1.1")
@@ -187,7 +225,8 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
                         mac,
                         rssi,
                         csi,
-                        position
+                        position,
+                        orientation
                     )
                 )
             }
@@ -199,17 +238,28 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         MAC: String,
         RSSI: String,
         CSI: String,
-        position: String
+        position: String,
+        orientation:String
 
     ): String {
-        val amplitudes = parseCSI(CSI, false)
-        val phases = parseCSI(CSI, true)
 
-        Log.d(
-            TAG,
-            "$type,$MAC,$RSSI,$amplitudes,$phases,$position\n"
-        )
-        return "$type,$MAC,$RSSI,$amplitudes,$phases,$position\n"
+        return if(CSI.isNotEmpty()) {
+            Log.d(TAG, "updateCsiString: $CSI")
+            val amplitudes = parseCSI(CSI, false)
+            val amp = amplitudes.toString().replace("," ,"")
+            val phases = parseCSI(CSI, true)
+            val pha = phases.toString().replace("," ,"")
+
+            Log.d(TAG, "updateCsiStringAmplitude: $amplitudes")
+            "$type,$MAC,$RSSI,${System.currentTimeMillis()},$amp,$pha,$position,$orientation\n"
+
+        }else {
+            Log.d(
+                TAG,
+                "$type,$MAC,$RSSI,-,-,$position\n"
+            )
+            "$type,$MAC,$RSSI,${System.currentTimeMillis()},-,-,$position,$orientation\n"
+        }
     }
 
     private fun parseCSI(CSI: String, returnPhases: Boolean): ArrayList<Float> {
