@@ -4,7 +4,8 @@ Aplicacion para generar CSV con valores de amplitud y fase de CSI, con indicacio
 
 
 Libreria empleada para captura de CSI [ESP32 CSI Serial (for Android)]
+
 Libreria empleada para captura de Balizas bluetooth [Android Beacon Library]
 
-[ESP32 CSI Serial (for Android)]:[https://github.com/StevenMHernandez/Android-ESP32-CSI] 
-[Android Beacon Library]:[https://altbeacon.github.io/android-beacon-library/]
+[ESP32 CSI Serial (for Android)]: <https://github.com/StevenMHernandez/Android-ESP32-CSI>
+[Android Beacon Library]:<https://altbeacon.github.io/android-beacon-library/>
