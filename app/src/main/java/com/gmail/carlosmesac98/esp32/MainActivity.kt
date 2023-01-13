@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
     private var csiCounter = 0
     private var first = true
     lateinit var beaconList: ListView
+    private val apMAC = "A8:5E:45:F6:81:90"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,12 +128,7 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
                     "North"
                 }
             }
-
-
-
         }
-
-
     }
 
 
@@ -181,16 +177,19 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
         }
 
         beaconList.adapter = BeaconListAdapter(this, beacons.toTypedArray())
-        for(beacon in beacons){
-            if(position!="Undefined")
-            dataCollectorService.handle(updateCsiString(
-                "beacon",
-                beacon.bluetoothAddress,
-                beacon.rssi.toString(),
-                "",
-                position,
-                orientation
-            ))
+        for(beacon in beacons) {
+            if (position != "Undefined") {
+                dataCollectorService.handle(
+                    updateCsiString(
+                        "beacon",
+                        beacon.bluetoothAddress,
+                        beacon.rssi.toString(),
+                        "",
+                        position,
+                        orientation
+                    )
+                )
+            }
         }
 
         sendPingRequest()
@@ -209,26 +208,29 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
     }
 
     override fun addCsi(csi_string: String?) {
+        Log.d(TAG, "addCsi: $csi_string")
         tvCSICounter.text = csiCounter.toString()
         val arr = csi_string?.split(",")
         if (arr != null) {
-            if (position!="Undefined") {
-                csiCounter++
-                val mac = arr[2]
-                tvMAC.text = mac
-                val type = arr[0]
-                val rssi = arr[3]
-                val csi = arr.last()
-                dataCollectorService.handle(
-                    updateCsiString(
-                        type,
-                        mac,
-                        rssi,
-                        csi,
-                        position,
-                        orientation
+            if (arr[2] == apMAC) {
+                if (position != "Undefined") {
+                    csiCounter++
+                    val mac = arr[2]
+                    tvMAC.text = mac
+                    val type = arr[0]
+                    val rssi = arr[3]
+                    val csi = arr.last()
+                    dataCollectorService.handle(
+                        updateCsiString(
+                            type,
+                            mac,
+                            rssi,
+                            csi,
+                            position,
+                            orientation
+                        )
                     )
-                )
+                }
             }
         }
     }
