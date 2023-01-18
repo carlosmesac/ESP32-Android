@@ -24,6 +24,7 @@ import com.stevenmhernandez.esp32csiserial.CSIDataInterface
 import com.stevenmhernandez.esp32csiserial.ESP32CSISerial
 import com.stevenmhernandez.esp32csiserial.UsbService.TAG
 import org.altbeacon.beacon.*
+import java.io.IOException
 import java.net.InetAddress
 import kotlin.math.atan2
 import kotlin.math.log
@@ -58,15 +59,14 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
     private var csiCounter = 0
     private var first = true
     lateinit var beaconList: ListView
-    private val apMAC = "A8:5E:45:F6:81:90"
+    private val apMAC = "58:EF:68:0E:16:EF"
+    //private val apMAC = "A8:5E:45:F6:81:90"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         initLayout()
-        val policy: StrictMode.ThreadPolicy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
 
 
         // Iniciamos el controlador para detectar balizas
@@ -192,19 +192,18 @@ class MainActivity : AppCompatActivity(), CSIDataInterface {
             }
         }
 
-        sendPingRequest()
+        pingRouter("192.168.1.1")
     }
 
-
-    private fun sendPingRequest() {
-        val inet = InetAddress.getByName("192.168.1.1")
-        Log.d(TAG,"Sending Ping Request to 192.168.1.1")
-        if (inet.isReachable(5000)){
-            tvPing.text = "Host reached"
-        }else{
-            tvPing.text = "Host can't be reached"
+    private fun pingRouter(routerIp: String) {
+        try {
+            val process = Runtime.getRuntime().exec("ping -c 1 $routerIp")
+            val inputStream = process.inputStream
+            val input = inputStream.bufferedReader().use { it.readText() }
+            Log.d("PING", input)
+        } catch (e: IOException) {
+            Log.e("PING", "Failed to ping router", e)
         }
-
     }
 
     override fun addCsi(csi_string: String?) {
